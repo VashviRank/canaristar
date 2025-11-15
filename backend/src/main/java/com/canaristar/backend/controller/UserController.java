@@ -79,6 +79,11 @@ public class UserController {
             return ResponseEntity.notFound().build();
         }
 
+//        use cant update this without verification
+        user.setEmail(existing.get().getEmail());
+        user.setPassword(existing.get().getPassword());
+        user.setRole(existing.get().getRole());
+
         userService.saveUser(user);
 
         return ResponseEntity.ok(user);
