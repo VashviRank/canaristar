@@ -2,12 +2,14 @@ package com.canaristar.backend.controller;
 
 import com.canaristar.backend.entity.User;
 import com.canaristar.backend.request.AuthRequest;
+import com.canaristar.backend.response.AuthResponse;
 import com.canaristar.backend.service.email.EmailService;
 import com.canaristar.backend.service.otp.OtpService;
 import com.canaristar.backend.service.user.UserService;
 import com.canaristar.backend.utils.otp.OTPUtils;
 import jakarta.mail.MessagingException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
@@ -49,10 +51,10 @@ public class UserController {
         return ResponseEntity.ok(userOpt.get().getId());
     }
 
-    @GetMapping
+    @GetMapping("/all")
     public ResponseEntity<List<User>> getAllUsers() {
         List<User> users = userService.findAll();
-
+        System.out.println(users);
         if (users.isEmpty()) {
             return ResponseEntity.notFound().build();
         }
@@ -61,14 +63,17 @@ public class UserController {
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<?> deleteUserById(@PathVariable String id) {
+    public ResponseEntity<AuthResponse> deleteUserById(@PathVariable String id) {
         Optional<User> userOpt = userService.findById(id);
         if (userOpt.isEmpty()) {
             return ResponseEntity.notFound().build();
         }
         userService.deleteUser(userOpt.get());
 
-        return ResponseEntity.ok().build();
+        return new ResponseEntity<>(
+                new AuthResponse(true, "Account deleted.", null),
+                HttpStatus.OK
+        );
     }
 
     @PutMapping
