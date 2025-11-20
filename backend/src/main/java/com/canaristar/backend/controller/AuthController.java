@@ -12,6 +12,7 @@ import com.canaristar.backend.utils.otp.OTPUtils;
 import jakarta.mail.MessagingException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -39,6 +40,9 @@ public class AuthController {
 
     @Autowired
     private OtpService otpService;
+
+    @Autowired
+    private AuthenticationManager authenticationManager;
 
     @PostMapping("/signup")
     public ResponseEntity<AuthResponse> signup(@RequestBody User user) throws MessagingException {
@@ -82,29 +86,23 @@ public class AuthController {
 
     @PostMapping("/signin")
     public ResponseEntity<?> signin(@RequestBody AuthRequest request, HttpServletRequest httpRequest) {
-        String existingToken = httpRequest.getHeader("Authorization");
-        System.out.println(existingToken);
 
-//        If a valid JWT is already provided, skip re-login
+        String existingToken = httpRequest.getHeader("Authorization");
+
         if (existingToken != null && jwtProvider.validateToken(existingToken)) {
-            String email = jwtProvider.getEmailFromToken(existingToken);
             return ResponseEntity.ok(new AuthResponse(true, "Already authenticated", existingToken));
         }
 
-//        Validate credentials
-        Optional<User> userOpt = userService.findByEmail(request.getEmail());
-        if (userOpt.isEmpty()) {
-            return ResponseEntity.badRequest().body("User not found");
-        }
+        Authentication authentication = authenticationManager.authenticate(
+                new UsernamePasswordAuthenticationToken(
+                        request.getEmail(),
+                        request.getPassword()
+                )
+        );
 
-        User user = userOpt.get();
-        if (!passwordEncoder.matches(request.getPassword(), user.getPassword())) {
-            return ResponseEntity.badRequest().body("Invalid credentials");
-        }
+        String token = jwtProvider.generateToken(authentication);
 
-//        Create authentication object for token generation
-        Authentication auth = new UsernamePasswordAuthenticationToken(user.getEmail(), null, null);
-        String token = jwtProvider.generateToken(auth);
+        User user = userService.findByEmail(request.getEmail()).get();
 
         return ResponseEntity.ok(new AuthResponse(true, user.getId(), token));
     }

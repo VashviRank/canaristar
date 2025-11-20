@@ -29,13 +29,16 @@ public class AdminController {
 
         if (user.isEmpty()) {
             return new ResponseEntity<>("User not found", HttpStatus.NOT_FOUND);
-        }
-
-        if (!authRequest.getPassword().equals(adminConfig.getAdminCreationPassword())) {
+        }else if (!authRequest.getPassword().equals(adminConfig.getAdminCreationPassword())) {
             return new ResponseEntity<>("Incorrect password", HttpStatus.UNAUTHORIZED);
         }
 
         User existingUser = user.get();
+
+        if (existingUser.getRole().equals(Role.ADMIN)) {
+            return new ResponseEntity<>("You are already an Admin", HttpStatus.UNAUTHORIZED);
+        }
+
         existingUser.setRole(Role.ADMIN);
 
         userService.saveUser(existingUser);
