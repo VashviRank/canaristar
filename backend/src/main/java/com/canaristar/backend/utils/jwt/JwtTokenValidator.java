@@ -7,7 +7,6 @@ import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
@@ -23,7 +22,6 @@ import java.util.List;
 @Component
 public class JwtTokenValidator extends OncePerRequestFilter {
 
-    @Autowired
     private final JwtConstant jwtConstant;
 
     public JwtTokenValidator(JwtConstant jwtConstant) {
@@ -31,7 +29,8 @@ public class JwtTokenValidator extends OncePerRequestFilter {
     }
 
     @Override
-    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
+    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response,
+                                    FilterChain filterChain)
             throws ServletException, IOException {
 
         String jwt = request.getHeader(JwtConstant.JWT_HEADER);
@@ -49,10 +48,14 @@ public class JwtTokenValidator extends OncePerRequestFilter {
                         .getBody();
 
                 String email = claims.get("email", String.class);
-                String authority = claims.get("authorities", String.class);
+                String roleString = claims.get("authorities", String.class);
 
-                List<GrantedAuthority> authorities = AuthorityUtils.commaSeparatedStringToAuthorityList(authority);
-                Authentication auth = new UsernamePasswordAuthenticationToken(email, null, authorities);
+                List<GrantedAuthority> authorities =
+                        AuthorityUtils.commaSeparatedStringToAuthorityList(roleString);
+
+                Authentication auth =
+                        new UsernamePasswordAuthenticationToken(email, null, authorities);
+
                 SecurityContextHolder.getContext().setAuthentication(auth);
 
             } catch (Exception e) {

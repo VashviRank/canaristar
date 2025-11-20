@@ -51,17 +51,6 @@ public class UserController {
         return ResponseEntity.ok(userOpt.get().getId());
     }
 
-    @GetMapping("/all")
-    public ResponseEntity<List<User>> getAllUsers() {
-        List<User> users = userService.findAll();
-        System.out.println(users);
-        if (users.isEmpty()) {
-            return ResponseEntity.notFound().build();
-        }
-
-        return ResponseEntity.ok(users);
-    }
-
     @DeleteMapping("/{id}")
     public ResponseEntity<AuthResponse> deleteUserById(@PathVariable String id) {
         Optional<User> userOpt = userService.findById(id);

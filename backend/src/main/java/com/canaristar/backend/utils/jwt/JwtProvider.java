@@ -25,15 +25,23 @@ public class JwtProvider {
 
     public String generateToken(Authentication auth) {
         Collection<? extends GrantedAuthority> authorities = auth.getAuthorities();
-        String role = populateAuthorities(authorities);
+        String roleString = populateAuthorities(authorities);
 
         return Jwts.builder()
                 .setIssuedAt(new Date())
                 .setExpiration(new Date(System.currentTimeMillis() + EXPIRATION_TIME))
                 .claim("email", auth.getName())
-                .claim("authorities", role)
+                .claim("authorities", roleString)
                 .signWith(key)
                 .compact();
+    }
+
+    private String populateAuthorities(Collection<? extends GrantedAuthority> authorities) {
+        Set<String> auth = new HashSet<>();
+        for (GrantedAuthority authority : authorities) {
+            auth.add(authority.getAuthority());
+        }
+        return String.join(",", auth);
     }
 
     public String getEmailFromToken(String token) {
@@ -62,13 +70,5 @@ public class JwtProvider {
             System.out.println("Invalid JWT token: " + e.getMessage());
         }
         return false;
-    }
-
-    private String populateAuthorities(Collection<? extends GrantedAuthority> authorities) {
-        Set<String> auth = new HashSet<>();
-        for (GrantedAuthority authority : authorities) {
-            auth.add(authority.getAuthority());
-        }
-        return String.join(",", auth);
     }
 }
