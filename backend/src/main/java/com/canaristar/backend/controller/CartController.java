@@ -61,7 +61,8 @@ public class CartController {
     @DeleteMapping("/remove")
     public ResponseEntity<?> removeItem(
             @RequestParam String userId,
-            @RequestParam String productId) {
+            @RequestParam String productId
+    ) {
 
         Cart cart = cartService.removeItem(userId, productId);
 
