@@ -133,7 +133,25 @@ public class AuthController {
 
         httpResponse.addCookie(cookie);
 
-        return ResponseEntity.ok(new AuthResponse(true, user.getId(), "Cookie Set"));
+        return ResponseEntity.ok(new AuthResponse(true, user.getId(), null));
+    }
+
+
+    @PostMapping("/resend-otp")
+    public ResponseEntity<?> resendOtp(@RequestBody String email) throws MessagingException {
+        String otp = null;
+
+        otp = otpService.getOtp(email);
+
+        if(otp != null) {
+            otpService.removeOtp(email);
+        }
+
+        otp = OTPUtils.generateOTP();
+        otpService.saveOtp(email, otp);
+        emailService.sendVerificationOtpMail(email, otp);
+
+        return ResponseEntity.ok(new AuthResponse(true, "OTP sent successfully", null));
     }
 
 }

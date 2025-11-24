@@ -15,4 +15,5 @@ public interface UserService {
     Optional<User> findByMobile(String mobile);
     User saveUser(User user);
     void deleteUser(User user);
+    List<User> findPaginated(int i, int size);
 }

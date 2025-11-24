@@ -64,6 +64,25 @@ public class AdminController {
     }
 
     @PreAuthorize("hasRole('ADMIN')")
+    @GetMapping("/users")
+    public ResponseEntity<?> getUsers(
+            @RequestParam(defaultValue = "1") int page,
+            @RequestParam(defaultValue = "20") int size
+    ) {
+        if(page < 1 || size < 1) {
+            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+        }
+
+        List<User> users = userService.findPaginated(page - 1, size);
+
+        if (users.isEmpty()) {
+            return new ResponseEntity<>("No users found", HttpStatus.NOT_FOUND);
+        }
+
+        return new ResponseEntity<>(users, HttpStatus.OK);
+    }
+
+    @PreAuthorize("hasRole('ADMIN')")
     @GetMapping("/all")
     public ResponseEntity<List<User>> getAllUser(){
         List<User> users = userService.findAll();
